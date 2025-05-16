@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FaBirthdayCake, FaEnvelope, FaKey, FaPhone, FaUser } from 'react-icons/fa';
+import { FaBirthdayCake, FaEnvelope, FaKey, FaPhone, FaUser, FaUserMd } from 'react-icons/fa';
 import "./styles/signup.css";
 import { Link } from 'react-router-dom';
 
@@ -11,10 +11,16 @@ export default function Signup() {
     age: '',
     phone: '',
     gender: '',
-    role: ''
+    role: '',
+    specialization: '' 
   });
 
-  const [errors, setErrors] = useState({});
+  // const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState({
+  /* … your other error keys … */
+  specialization: null   // ← optional
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
@@ -60,6 +66,10 @@ export default function Signup() {
     }
     
     setErrors(newErrors);
+    // after you build newErrors for required fields…
+    if (formData.role === 'doctor' && !formData.specialization.trim()) {
+      newErrors.specialization = "Specialization is required for doctors";
+    }
     return Object.keys(newErrors).length === 0;
   };
 
@@ -225,7 +235,25 @@ export default function Signup() {
             </select>
           </div>
           {errors.role && <div className="error-message">{errors.role}</div>}
-          
+          {formData.role === 'doctor' && (
+            <div className="input-group">
+              <div className="icon-container">
+                <FaUserMd />
+              </div>
+              <input
+                type="text"
+                id="specialization"
+                name="specialization"
+                placeholder="Enter your medical specialization"
+                value={formData.specialization}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          )}
+          {errors.specialization && (
+            <div className="error-message">{errors.specialization}</div>
+          )}
           <button 
             type="submit" 
             className="signup-button"
