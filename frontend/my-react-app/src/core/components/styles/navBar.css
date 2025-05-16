@@ -1,0 +1,69 @@
+/* Navbar.css */
+.navbar-container {
+    display: flex;
+    justify-content: center;
+    padding: 0;
+    width: 100%;
+  }
+  
+  .navbar {
+    display: flex;
+    align-items: center;
+    background-color: #1a1a1a;
+    border-radius: 0;
+    padding: 8px 24px;
+    width: 100%;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    justify-content: space-between;
+  }
+  
+  .logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 6px;
+    margin-right: 10px;
+  }
+  
+  .circle {
+    width: 18px;
+    height: 18px;
+    background-color: white;
+    border-radius: 50%;
+  }
+  
+  .nav-links {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .nav-links li {
+    margin: 0 10px;
+  }
+  
+  .nav-links a {
+    text-decoration: none;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 6px 10px;
+    transition: all 0.2s ease;
+  }
+  
+  .nav-links a:hover {
+    opacity: 0.8;
+  }
+  
+  .user-email {
+    background-color: white;
+    color: #333;
+    border-radius: 20px;
+    padding: 6px 14px;
+    margin-left: 20px;
+    font-size: 14px;
+    font-weight: 500;
+  }

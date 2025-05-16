@@ -1,0 +1,79 @@
+
+  .home-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  
+  .home-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  
+  .home-header p {
+    font-size: 16px;
+    color: #666;
+  }
+  
+  .departments-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-bottom: 40px;
+    margin-right: 20px;
+    margin-left: 20px;
+  }
+  
+  .department-grid-item {
+    min-height: 180px;
+  }
+  
+  .home-footer {
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+  }
+  
+  .home-footer p {
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .home-footer a {
+    color: #5664d2;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  
+  .home-footer a:hover {
+    text-decoration: underline;
+  }
+
+  .home-footer{
+    background-color: #333;
+    padding-bottom: 30px;
+    color: white;
+  }
+  .home-footer p, .home-footer a{
+    color: white;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .departments-grid {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    
+    .home-header h1 {
+      font-size: 24px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .departments-grid {
+      grid-template-columns: 1fr;
+    }
+  }
