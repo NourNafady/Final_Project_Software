@@ -8,7 +8,8 @@ export default function SignIn() {
     email: '',
     password: ''
   });
-  const [rememberMe, setRememberMe] = useState(false);
+  const [doctor, setDoctor] = useState(false);
+  const [admin, setAdmin] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -44,7 +45,9 @@ export default function SignIn() {
     if (formData.email && !emailRegex.test(formData.email)) {
       newErrors.email = "Please enter a valid email address";
     }
-    
+    if (doctor && admin) {
+      newErrors.role = "choose only one role";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -61,7 +64,7 @@ export default function SignIn() {
     
     try {
       // Make API request
-      const response = await fetch('/api/signin', {
+      const response = await fetch('http://localhost:4000/signin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -69,7 +72,8 @@ export default function SignIn() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          rememberMe
+          admin: admin,
+          doctor: doctor
         }),
       });
       
@@ -145,17 +149,26 @@ export default function SignIn() {
             <div className="remember-me">
               <input
                 type="checkbox"
-                id="remember"
-                checked={rememberMe}
-                onChange={() => setRememberMe(!rememberMe)}
+                id="admin"
+                checked={admin}
+                onChange={() => setAdmin(!admin)}
               />
-              <label htmlFor="remember">Remember me</label>
+              <label htmlFor="remember">admin ?</label>
             </div>
-            <div className="forgot-password">
-              <a href="/forgot-password">Forgot Password?</a>
+            <div className="remember-me">
+              <input
+                type="checkbox"
+                id="doctor"
+                checked={doctor}
+                onChange={() => setDoctor(!doctor)}
+              />
+              <label htmlFor="remember">doctor ?</label>
             </div>
+            
+
+            
           </div>
-          
+          {errors.role && <div className="error-message">{errors.role}</div>}
           <button 
             type="submit" 
             className="login-button"
