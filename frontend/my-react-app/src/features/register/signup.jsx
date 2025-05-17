@@ -40,36 +40,47 @@ export default function Signup() {
 
   const validateForm = () => {
     const newErrors = {};
-    
-    // Check for empty fields
-    Object.keys(formData).forEach(key => {
-      if (!formData[key]) {
-        newErrors[key] = `${key.charAt(0).toUpperCase() + key.slice(1)} is required`;
-      }
-    });
-    
-    // Validate email format
+
+    // Always required fields
+    if (!formData.name) newErrors.name = "Name is required";
+    if (!formData.email) newErrors.email = "Email is required";
+    if (!formData.password) newErrors.password = "Password is required";
+    if (!formData.role) newErrors.role = "Role is required";
+
+    // Only required if NOT admin
+    if (formData.role !== "admin") {
+      if (!formData.age) newErrors.age = "Age is required";
+      if (!formData.phone) newErrors.phone = "Phone is required";
+      if (!formData.gender) newErrors.gender = "Gender is required";
+    }
+
+    // Only required if doctor
+    if (formData.role === "doctor" && !formData.specialization.trim()) {
+      newErrors.specialization = "Specialization is required for doctors";
+    }
+
+    // Email format
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (formData.email && !emailRegex.test(formData.email)) {
       newErrors.email = "Please enter a valid email address";
     }
-    
-    // Validate password strength (optional)
+
+    // Password strength
     if (formData.password && formData.password.length < 8) {
       newErrors.password = "Password must be at least 8 characters";
     }
 
-    // Validate phone number (optional)
+    // Phone format (only if not admin)
     const phoneRegex = /^\d{10,15}$/;
-    if (formData.phone && !phoneRegex.test(formData.phone.replace(/[-()\s]/g, ''))) {
+    if (
+      formData.role !== "admin" &&
+      formData.phone &&
+      !phoneRegex.test(formData.phone.replace(/[-()\s]/g, ""))
+    ) {
       newErrors.phone = "Please enter a valid phone number";
     }
-    
+
     setErrors(newErrors);
-    // after you build newErrors for required fields…
-    if (formData.role === 'doctor' && !formData.specialization.trim()) {
-      newErrors.specialization = "Specialization is required for doctors";
-    }
     return Object.keys(newErrors).length === 0;
   };
 
@@ -85,7 +96,7 @@ export default function Signup() {
     
     try {
       // Make API request
-      const response = await fetch('/api/signup', {
+      const response = await fetch('http://localhost:4000/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

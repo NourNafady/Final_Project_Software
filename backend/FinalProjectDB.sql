@@ -1,6 +1,6 @@
 CREATE TYPE state AS ENUM ('opened', 'closed');
 
-CREATE TYPE g AS ENUM ('Male', 'Female');
+CREATE TYPE g AS ENUM ('male', 'female');
 
 CREATE TYPE stateOfRegistration AS ENUM ('Booked', 'Available');
 
