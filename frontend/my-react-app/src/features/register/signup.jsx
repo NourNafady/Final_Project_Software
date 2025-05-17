@@ -140,7 +140,7 @@ export default function Signup() {
             />
           </div>
           {errors.name && <div className="error-message">{errors.name}</div>}
-          
+
           <div className="input-group">
             <div className="icon-container">
               <FaEnvelope />
@@ -155,7 +155,7 @@ export default function Signup() {
             />
           </div>
           {errors.email && <div className="error-message">{errors.email}</div>}
-          
+
           <div className="input-group">
             <div className="icon-container">
               <FaKey />
@@ -170,55 +170,60 @@ export default function Signup() {
             />
           </div>
           {errors.password && <div className="error-message">{errors.password}</div>}
-          
-          <div className="input-group">
-            <div className="icon-container">
-              <FaBirthdayCake />
-            </div>
-            <input
-              type="number"
-              name="age"
-              placeholder="Age"
-              value={formData.age}
-              onChange={handleChange}
-              min="1"
-              max="120"
-              required
-            />
-          </div>
-          {errors.age && <div className="error-message">{errors.age}</div>}
-          
-          <div className="input-group">
-            <div className="icon-container">
-              <FaPhone />
-            </div>
-            <input
-              type="tel"
-              name="phone"
-              placeholder="Phone Number"
-              value={formData.phone}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          {errors.phone && <div className="error-message">{errors.phone}</div>}
-          
-          <div className="select-group">
-            <label htmlFor="gender">Gender:</label>
-            <select
-              id="gender"
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Select Gender</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-            </select>
-          </div>
-          {errors.gender && <div className="error-message">{errors.gender}</div>}
-          
+
+          {/* Only show the rest if NOT admin */}
+          {formData.role !== 'admin' && (
+            <>
+              <div className="input-group">
+                <div className="icon-container">
+                  <FaBirthdayCake />
+                </div>
+                <input
+                  type="number"
+                  name="age"
+                  placeholder="Age"
+                  value={formData.age}
+                  onChange={handleChange}
+                  min="1"
+                  max="120"
+                  required
+                />
+              </div>
+              {errors.age && <div className="error-message">{errors.age}</div>}
+
+              <div className="input-group">
+                <div className="icon-container">
+                  <FaPhone />
+                </div>
+                <input
+                  type="tel"
+                  name="phone"
+                  placeholder="Phone Number"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              {errors.phone && <div className="error-message">{errors.phone}</div>}
+
+              <div className="select-group">
+                <label htmlFor="gender">Gender:</label>
+                <select
+                  id="gender"
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+              </div>
+              {errors.gender && <div className="error-message">{errors.gender}</div>}
+            </>
+          )}
+
           <div className="select-group">
             <label htmlFor="role">Role:</label>
             <select
@@ -235,6 +240,8 @@ export default function Signup() {
             </select>
           </div>
           {errors.role && <div className="error-message">{errors.role}</div>}
+
+          {/* Only show specialization if doctor */}
           {formData.role === 'doctor' && (
             <div className="input-group">
               <div className="icon-container">
@@ -254,6 +261,7 @@ export default function Signup() {
           {errors.specialization && (
             <div className="error-message">{errors.specialization}</div>
           )}
+
           <button 
             type="submit" 
             className="signup-button"

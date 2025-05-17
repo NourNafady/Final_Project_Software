@@ -42,6 +42,13 @@ CREATE TABLE patient(
 );
 
 
+CREATE TABLE admin(
+    id SERIAL PRIMARY KEY,
+    full_Name VARCHAR(100) NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL
+);
+
 CREATE TABLE doctor(
     id SERIAL PRIMARY KEY,
     full_Name VARCHAR(100) NOT NULL,
