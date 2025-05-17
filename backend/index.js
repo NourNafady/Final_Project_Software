@@ -49,7 +49,7 @@ app.post('/signup', async (req, res) => {
             return res.status(200).json({message: "Patient registered successfully"});
         } else if (role == "doctor") {
             const specialization = req.body.specialization;
-            const specializationResult = await db.query("SELECT * FROM specialization WHERE name = $1", [specialization]);
+            const specializationResult = await db.query("SELECT * FROM specialty WHERE name = $1", [specialization]);
             if (specializationResult.rows.length === 0) {
                 return res.status(400).json({message: "Invalid specialization"});
             }
@@ -59,7 +59,7 @@ app.post('/signup', async (req, res) => {
             }
             const hash = await bcrypt.hash(req.body.password, saltRounds);
             const query = await db.query(
-                "INSERT INTO doctor (full_name, email, password, age, phone, gender, specialization_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;",
+                "INSERT INTO doctor (full_name, email, password, age, phone, gender, specialty_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;",
                 [req.body.name, req.body.email, hash, req.body.age, req.body.phone, req.body.gender, specializationResult.rows[0].id]
             );
             console.log(query.rows[0]);
