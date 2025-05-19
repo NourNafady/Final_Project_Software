@@ -1,14 +1,17 @@
 import React from 'react'
 import ClinicList from "./components/clinicList";
 import ClinicCard from "./components/clinic_card";
+import { useNavigate } from 'react-router-dom';
 import "./styles/home.css";
 
-function HomeScreen() {
+function HomeScreen()
+{
+  const navigate = useNavigate();
     // Define the handler function
     const handleDepartmentClick = (departmentId) => {
 
       console.log("Department clicked:", departmentId);
-
+      navigate(`/doctors?department=${departmentId}`);
     };
 
     return (

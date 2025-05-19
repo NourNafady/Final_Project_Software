@@ -1,10 +1,10 @@
-import { Link, Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import "./App.css";
-import logo from "./logo.svg";
 import Signup from "./features/register/signup.jsx";
 import Signin from "./features/register/signin.jsx";
 import NavBar from "./core/components/navBar.jsx";
 import Home from "./features/home/home.jsx";
+import Doctors from "./features/doctors_page/doctors.jsx";
 
 // Example Home component
 
@@ -21,6 +21,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/signin" element={<Signin />} />
+        <Route path="/doctors" element={<Doctors />} />
         {/* <Route path="/about" element={<About />} /> */}
       </Routes>
     </Router>

@@ -13,7 +13,7 @@ export default function Navbar() {
               <li><NavLink to="/signup">signup</NavLink></li>
               <li><NavLink to="/signin">signin</NavLink></li>
               <li><NavLink to="/">home</NavLink></li>
-              <li><NavLink to="/resource">Resource</NavLink></li>
+  
             </ul>
           </div>
           <div className="user-email">

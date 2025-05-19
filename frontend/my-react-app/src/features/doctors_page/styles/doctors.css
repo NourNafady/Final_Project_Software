@@ -1,0 +1,46 @@
+.doctors-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.doctors-header {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.doctors-header h1 {
+  font-size: 28px;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.doctors-header p {
+  color: #666;
+  font-size: 16px;
+}
+
+.doctors-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .doctors-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+.doctors-loading,
+.doctors-error,
+.no-doctors {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: #666;
+}
+
+.doctors-error {
+  color: #cc0000;
+}
