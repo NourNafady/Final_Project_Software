@@ -7,7 +7,6 @@ export default function Navbar() {
         <nav className="navbar">
           <div className="left-section">
             <div className="logo">
-              <div className="circle"></div>
             </div>
             <ul className="nav-links">
               <li><NavLink to="/signup">signup</NavLink></li>
@@ -16,9 +15,9 @@ export default function Navbar() {
   
             </ul>
           </div>
-          <div className="user-email">
-            <span>lhyee@gmail.com</span>
-          </div>
+          {/* <div className="user-email"> */}
+            {/* <span>lhyee@gmail.com</span> */}
+          {/* </div> */}
         </nav>
       </div>
     );
