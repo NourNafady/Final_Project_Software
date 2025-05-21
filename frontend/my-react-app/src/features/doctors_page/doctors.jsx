@@ -5,7 +5,7 @@ import "./styles/doctors.css";
 
 export default function Doctors() {
   const [searchParams] = useSearchParams();
-  const departmentId = searchParams.get('department');
+  const clinicId = searchParams.get('clinic'); 
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -13,7 +13,7 @@ export default function Doctors() {
   // Fetch doctors data from backend based on department ID
   useEffect(() => {
     const fetchDoctors = async () => {
-      if (!departmentId) {
+      if (!clinicId) { 
         setDoctors([]);
         setLoading(false);
         return;
@@ -23,9 +23,8 @@ export default function Doctors() {
       setError(null);
       
       try {
-        // API endpoint should now return doctor data matching our schema
-        // This would return doctors with their specialty_id matching the department
-        const response = await fetch(`http://localhost:4000/api/doctors?specialty_id=${departmentId}`);
+        // Fetch doctors by clinic_id
+        const response = await fetch(`http://localhost:4000/doctors?clinic_id=${clinicId}`); 
         
         if (!response.ok) {
           throw new Error(`Failed to fetch doctors: ${response.status} ${response.statusText}`);
@@ -37,7 +36,7 @@ export default function Doctors() {
         const doctorsWithSlots = await Promise.all(
           doctorsData.map(async (doctor) => {
             try {
-              const slotsResponse = await fetch(`http://localhost:4000/api/doctors/${doctor.id}/time-slots`);
+              const slotsResponse = await fetch(`http://localhost:4000/doctor/${doctor.id}/time-slots`);
               if (!slotsResponse.ok) {
                 throw new Error(`Failed to fetch time slots`);
               }
@@ -74,7 +73,7 @@ export default function Doctors() {
     };
 
     fetchDoctors();
-  }, [departmentId]);
+  }, [clinicId]); 
 
   const handleAppointmentSelect = async (doctorId, timeSlotId) => {
       try
@@ -90,7 +89,7 @@ export default function Doctors() {
       }
       
       // Make API request to book appointment
-      const response = await fetch('http://localhost:4000/api/appointments', {
+      const response = await fetch('http://localhost:4000/appointments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -137,7 +136,7 @@ export default function Doctors() {
     <div className="doctors-page">
       <header className="doctors-header">
         <h1>Available Doctors</h1>
-        {departmentId && <p>Showing doctors for specialty #{departmentId}</p>}
+        {clinicId && <p>Showing doctors for clinic #{clinicId}</p>} {/* changed */}
       </header>
       
       <div className="doctors-list">
@@ -146,9 +145,9 @@ export default function Doctors() {
             key={doctor.id}
             doctor={{
               id: doctor.id,
-              name: doctor.full_Name,
+              name: doctor.full_name,
               specialty: doctor.specialty_name || "Specialist",
-              image: doctor.image || "https://via.placeholder.com/150",
+              image: doctor.image || (doctor.gender === "female" ? "/FemaleDoctor.png" : "/MaleDoctor.png"),
               availableSlots: doctor.availableSlots
             }}
             onSelectAppointment={(timeSlotId) => handleAppointmentSelect(doctor.id, timeSlotId)}

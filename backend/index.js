@@ -138,6 +138,81 @@ app.post('/signin', async (req,res)=>{
         return res.status(500).json({message: "Internal Server Error"});
     }
 });
+
+app.get('/clinics', async (req, res) => {
+    try {
+    // Join clinic, specialty, and clinic_hours
+    const result = await db.query(`
+        SELECT 
+        c.id,
+        s.name AS name,
+        c.address,
+        c.phone,
+        ch.weekdays,
+        ch.open_time,
+        ch.close_time
+        FROM clinic c
+        JOIN specialty s ON c.specialty_id = s.id
+        JOIN clinic_hours ch ON ch.clinic_id = c.id
+        ORDER BY c.id ASC
+    `);
+
+    console.log(result.rows);
+    // Format the weekdays array and time fields for frontend
+    const clinics = result.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        address: row.address,
+        phone: row.phone,
+        days: row.weekdays, 
+        open_time: row.open_time.slice(0,5),   
+        close_time: row.close_time.slice(0,5), 
+    }));
+
+    res.json(clinics);
+    } catch (error) {
+    console.error('Error fetching clinics:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+
+app.get('/doctors', async (req, res) => {
+    const clinic_id = req.query.clinic_id; 
+    console.log(clinic_id);
+    try {
+        const result = await db.query("SELECT d.*, s.name AS specialty_name FROM doctor d JOIN specialty s ON d.specialty_id = s.id WHERE d.clinic_id = $1;", [clinic_id]);
+        if (result.rows.length > 0) {
+            res.status(200).json(result.rows);
+        } else {
+            res.status(404).json({ message: "No doctors found for this clinic" });
+        }
+    } catch (error) {
+        console.error('Error fetching doctors:', error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+});
+
+
+app.get('/doctor/:id/time-slots', async (req, res) => {
+    const doctorId = req.params.id;
+    console.log(doctorId);
+    try {
+        const result = await db.query("SELECT * FROM doctor_hours WHERE doctor_id = $1;", [doctorId]);
+        if (result.rows.length > 0) {
+            res.status(200).json(result.rows);
+        } else {
+            res.status(404).json({ message: "No time slots found for this doctor" });
+        }
+    } catch (error) {
+        console.error('Error fetching time slots:', error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+});
+
+
+
+
 app.listen(port, () => {
     console.log(`Server listening on port ${port}`);
 });
