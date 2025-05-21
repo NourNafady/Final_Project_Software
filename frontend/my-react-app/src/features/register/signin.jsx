@@ -178,7 +178,7 @@ export default function SignIn() {
           </button>
           
           <div className="login-link">
-            Already have an account? <Link to="/signup">Sign In</Link>
+            Do not Have Account Yet? <Link to="/signup">Sign Up</Link>
           </div>
         </form>
       </div>
