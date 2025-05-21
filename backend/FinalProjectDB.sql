@@ -1,11 +1,11 @@
-CREATE TYPE state AS ENUM ('opened', 'closed');
+-- CREATE TYPE state AS ENUM ('opened', 'closed');
 
 CREATE TYPE g AS ENUM ('male', 'female');
 
 CREATE TYPE stateOfRegistration AS ENUM ('Booked', 'Available');
 
 CREATE TYPE weekday_enum AS ENUM (
-  'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
 );
 
 
@@ -28,7 +28,7 @@ CREATE TABLE clinic_hours (
     weekday      weekday_enum NOT NULL,
     open_time    TIME NOT NULL,
     close_time   TIME NOT NULL,
-    status state NOT NULL
+    -- status state NOT NULL
 );
 
 CREATE TABLE patient(
@@ -91,3 +91,43 @@ CREATE TABLE registration (
     status stateOfRegistration NOT NULL,
     registration_time TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+
+-- Code of Insertion for the specialty table
+INSERT INTO specialty (name) VALUES
+    ('General Medicine'),
+    ('Cardiology'),
+    ('Neurology'),
+    ('Pediatrics'),
+    ('Physical Therapy'),
+    ('Mental Health'),
+    ('General Dentistry'),
+    ('Insurance');
+
+
+-- Code of Insertion for the clinic table
+INSERT INTO clinic (address, phone, specialty_id) VALUES
+    ('1 Nile Avenue, Cairo, Egypt', '01001000001', 1),
+    ('12 Tahrir Square, Cairo, Egypt','01001000002', 2),
+    ('23 Ramses St., Cairo, Egypt', '01001000003', 3),
+    ('34 Gezira St., Zamalek, Cairo, Egypt','01001000004', 4),
+    ('45 Maadi Corniche, Maadi, Cairo, Egypt','01001000005', 5),
+    ('56 Heliopolis St., Heliopolis, Cairo','01001000006', 6),
+    ('67 Sixth of October City, Giza, EG','01001000007', 7),
+    ('78 Smart Village, Giza, Egypt', '01001000008', 8);
+
+-- Code of Modification for the clinic_hours table if you already add status column
+ALTER TABLE clinic_hours
+DROP COLUMN status;
+
+
+-- Code of Insertion for the clinic_hours table
+INSERT INTO clinic_hours (clinic_id, weekday, open_time, close_time) VALUES
+    (1, 'Monday',   '08:00:00', '17:00:00'),
+    (2, 'Tuesday',   '09:00:00', '18:00:00'),
+    (3, 'Wednesday', '07:30:00', '16:30:00'),
+    (4, 'Thursday', '10:00:00', '19:00:00'),
+    (5, 'Friday',   '08:30:00', '17:30:00'),
+    (6, 'Saturday', '09:30:00', '18:30:00'),
+    (7, 'Sunday',   '07:00:00', '15:00:00'),
+    (8, 'Monday',   '11:00:00', '20:00:00');
