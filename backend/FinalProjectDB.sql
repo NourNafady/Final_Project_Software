@@ -131,7 +131,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- Insert 6 doctors per specialty (IDs 1–8) with bcrypt-hashed passwords:
 INSERT INTO doctor (full_name, email, password, age, phone, gender, specialty_id, clinic_id) VALUES
-  -- Specialty 1: Neurology
+  -- Specialty 1: Neurology 
   ('Dr. Alice Neu',     'alice.neu@example.com',     crypt('passAlice1', gen_salt('bf')), 45, '01000000001', 'female', 1, 1),
   ('Dr. Bob Brain',     'bob.brain@example.com',     crypt('passBob2', gen_salt('bf')), 50, '01000000002', 'male',   1, 1),
   ('Dr. Cara Cortex',   'cara.cortex@example.com',   crypt('passCara3', gen_salt('bf')), 38, '01000000003', 'female', 1, 1),

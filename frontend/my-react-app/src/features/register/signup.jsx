@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FaBirthdayCake, FaEnvelope, FaKey, FaPhone, FaUser, FaUserMd } from 'react-icons/fa';
 import "./styles/signup.css";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate} from 'react-router-dom';
 
 export default function Signup() {
   const [formData, setFormData] = useState({
@@ -15,6 +15,7 @@ export default function Signup() {
     specialization: '' 
   });
 
+  const navigate = useNavigate();
   // const [errors, setErrors] = useState({});
   const [errors, setErrors] = useState({
   /* … your other error keys … */
@@ -129,7 +130,17 @@ export default function Signup() {
       localStorage.setItem('userEmail', formData.email);
       
       // Redirect to login page or dashboard
-      window.location.href = '/signin';
+      if (localStorage.getItem("userRole") === "doctor" ||
+        localStorage.getItem("rememberDoctor")  === true) {
+        console.log('doctor');
+        // window.location.href = "/doctorApp";
+        navigate('/doctorApp');
+      } else  {
+        console.log('patient');
+        //  window.location.href = '/signin';
+        navigate('/signin');
+
+      }
       
     } catch (error) {
       console.error('Error during signup:', error);
@@ -262,6 +273,8 @@ export default function Signup() {
             >
               <option value="">Select Role</option>
               <option value="patient">Patient</option>
+              <option value="doctor">Doctor</option>
+
 
             </select>
           </div>

@@ -1,34 +1,42 @@
-import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import {
+  Navigate,
+  Route,
+  BrowserRouter as Router,
+  Routes,
+} from "react-router-dom";
 import "./App.css";
-import Signup from "./features/register/signup.jsx";
-import Signin from "./features/register/signin.jsx";
 import NavBar from "./core/components/navBar.jsx";
-import Home from "./features/home/home.jsx";
-import Doctors from "./features/doctors_page/doctors.jsx";
 import DoctorAppointment from "./features/doctor_appointment/DoctorAppointment.jsx";
-
-// Example Home component
-
-// Example About component
-
-
+import Doctors from "./features/doctors_page/doctors.jsx";
+import Home from "./features/home/home.jsx";
+import Signin from "./features/register/signin.jsx";
+import Signup from "./features/register/signup.jsx";
 
 function App() {
+  // Helper function to check if user is a doctor
+  // const isDoctor = () => {
+  //   return (
+  //     localStorage.getItem("userType") === "doctor" ||
+  //     localStorage.getItem("rememberDoctor") === "true"
+  //   );
+  // };
+
   return (
     <Router>
-      {/* //! replace with our navbar */}
       <NavBar />
       <Routes>
-        {localStorage.getItem("userRole") === "doctor" ||
-        localStorage.getItem("rememberDoctor")  === true ? (
-          <Route path="/doctorApp" element={<DoctorAppointment />} />
-        ) : (
-          <Route path="/" element={<Home />} />
-        )}
+        {/* Define all routes, not conditionally */}
+        <Route path="/" element={<Home />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/signin" element={<Signin />} />
         <Route path="/doctors" element={<Doctors />} />
-        {/* <Route path="/about" element={<About />} /> */}
+        <Route path="/doctorsApp" element={<DoctorAppointment />} />
+        <Route path="/" element={<Home />} />
+
+        {/* <Route
+          path="/doctorApp"
+          element={isDoctor() ? <DoctorAppointment /> : <Navigate to="/" />}
+        /> */}
       </Routes>
     </Router>
   );

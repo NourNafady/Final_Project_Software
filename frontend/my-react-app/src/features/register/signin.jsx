@@ -120,12 +120,15 @@ export default function SignIn() {
       // Redirect to appropriate page
       console.log(data.user.userType);
       console.log("vfgfgfssssssfgsvvvvvvvgf");
-    if (data.user.userType === 'doctor') {
+      if (localStorage.getItem("userType") === "doctor" ||
+      localStorage.getItem("rememberDoctor")  === true) {
       console.log('doctor');
-      window.location.href = "/doctorApp";
-    } else if (data.user.userType === 'patient') {
+      // window.location.href = "/doctorApp";
+      navigate('/doctorApp');
+    } else  {
       console.log('patient');
-       window.location.href = '/';
+      //  window.location.href = '/';
+      navigate('/');
     }
       
     } catch (error) {
