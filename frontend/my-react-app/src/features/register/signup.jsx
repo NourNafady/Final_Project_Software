@@ -11,7 +11,7 @@ export default function Signup() {
     age: '',
     phone: '',
     gender: '',
-    role: '',
+    role: localStorage.getItem('userRole') || '',
     specialization: '' 
   });
 
@@ -23,12 +23,25 @@ export default function Signup() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // Store role in localStorage when it changes
+    if (name === 'role') {
+      localStorage.setItem('userRole', value);
+    }
+
+    if (name === 'email') {
+      localStorage.setItem('userEmail', value);
+    }
+    
     setFormData({
       ...formData,
       [name]: value
     });
+    
     // Clear error when user types
     if (errors[name]) {
       setErrors({
@@ -36,6 +49,7 @@ export default function Signup() {
         [name]: null
       });
     }
+
   };
 
   const validateForm = () => {
@@ -111,6 +125,8 @@ export default function Signup() {
       
       const data = await response.json();
       console.log('Signup successful:', data);
+
+      localStorage.setItem('userEmail', formData.email);
       
       // Redirect to login page or dashboard
       window.location.href = '/signin';

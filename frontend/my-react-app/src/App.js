@@ -5,6 +5,7 @@ import Signin from "./features/register/signin.jsx";
 import NavBar from "./core/components/navBar.jsx";
 import Home from "./features/home/home.jsx";
 import Doctors from "./features/doctors_page/doctors.jsx";
+import DoctorAppointment from "./features/doctor_appointment/DoctorAppointment.jsx";
 
 // Example Home component
 
@@ -18,7 +19,12 @@ function App() {
       {/* //! replace with our navbar */}
       <NavBar />
       <Routes>
-        <Route path="/" element={<Home />} />
+        {localStorage.getItem("userRole") === "doctor" ||
+        localStorage.getItem("rememberDoctor")  === true ? (
+          <Route path="/doctorApp" element={<DoctorAppointment />} />
+        ) : (
+          <Route path="/" element={<Home />} />
+        )}
         <Route path="/signup" element={<Signup />} />
         <Route path="/signin" element={<Signin />} />
         <Route path="/doctors" element={<Doctors />} />

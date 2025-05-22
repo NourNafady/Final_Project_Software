@@ -13,8 +13,27 @@ export default function SignIn() {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const handleAdminChange = () => {
+    const newValue = !admin;
+    setAdmin(newValue);
+    console.log(newValue);
+    localStorage.setItem('rememberAdmin', newValue);
+  };
+
+  // Handle doctor checkbox changeU
+  const handleDoctorChange = () => {
+    const newValue = !doctor;
+    setDoctor(newValue);
+    console.log(newValue);
+    localStorage.setItem('rememberDoctor', newValue);
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === 'email') {
+      localStorage.setItem('userEmail', value);
+    }
     setFormData({
       ...formData,
       [name]: value
@@ -84,6 +103,8 @@ export default function SignIn() {
       
       const data = await response.json();
       console.log('Login successful:', data);
+
+      localStorage.setItem('userEmail', formData.email);
       
       // Store token if received
       if (data.token) {
@@ -151,7 +172,7 @@ export default function SignIn() {
                 type="checkbox"
                 id="admin"
                 checked={admin}
-                onChange={() => setAdmin(!admin)}
+                onChange={handleAdminChange}
               />
               <label htmlFor="remember">admin ?</label>
             </div>
@@ -160,7 +181,7 @@ export default function SignIn() {
                 type="checkbox"
                 id="doctor"
                 checked={doctor}
-                onChange={() => setDoctor(!doctor)}
+                onChange={handleDoctorChange}
               />
               <label htmlFor="remember">doctor ?</label>
             </div>
