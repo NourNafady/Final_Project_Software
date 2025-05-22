@@ -262,8 +262,7 @@ export default function Signup() {
             >
               <option value="">Select Role</option>
               <option value="patient">Patient</option>
-              <option value="doctor">Doctor</option>
-              <option value="admin">Admin</option>
+
             </select>
           </div>
           {errors.role && <div className="error-message">{errors.role}</div>}

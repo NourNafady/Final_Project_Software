@@ -48,35 +48,35 @@ app.post('/signup', async (req, res) => {
             );
             console.log(query.rows[0]);
             return res.status(200).json({message: "Patient registered successfully"});
-        } else if (role == "doctor") {
-            const specialization = req.body.specialization;
-            const specializationResult = await db.query("SELECT * FROM specialty WHERE name = $1", [specialization]);
-            if (specializationResult.rows.length === 0) {
-                return res.status(400).json({message: "Invalid specialization"});
-            }
-            const result = await db.query("SELECT * FROM doctor WHERE email = $1", [req.body.email]);
-            if (result.rows.length > 0) {
-                return res.status(400).json({message: "Email already exists"});
-            }
-            const hash = await bcrypt.hash(req.body.password, saltRounds);
-            const query = await db.query(
-                "INSERT INTO doctor (full_name, email, password, age, phone, gender, specialty_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;",
-                [req.body.name, req.body.email, hash, req.body.age, req.body.phone, req.body.gender, specializationResult.rows[0].id]
-            );
-            console.log(query.rows[0]);
-            return res.status(200).json({message: "Doctor registered successfully"});
-        } else if (role == "admin") {
-            const result = await db.query("SELECT * FROM admin WHERE email = $1", [req.body.email]);
-            if (result.rows.length > 0) {
-                return res.status(400).json({message: "Email already exists"});
-            }
-            const hash = await bcrypt.hash(req.body.password, saltRounds);
-            const query = await db.query(
-                "INSERT INTO admin (full_name, email, password) VALUES ($1, $2, $3) RETURNING *;",
-                [req.body.name, req.body.email, hash]
-            );
-            console.log(query.rows[0]);
-            return res.status(200).json({message: "Admin registered successfully"});
+        // } else if (role == "doctor") {
+        //     const specialization = req.body.specialization;
+        //     const specializationResult = await db.query("SELECT * FROM specialty WHERE name = $1", [specialization]);
+        //     if (specializationResult.rows.length === 0) {
+        //         return res.status(400).json({message: "Invalid specialization"});
+        //     }
+        //     const result = await db.query("SELECT * FROM doctor WHERE email = $1", [req.body.email]);
+        //     if (result.rows.length > 0) {
+        //         return res.status(400).json({message: "Email already exists"});
+        //     }
+        //     const hash = await bcrypt.hash(req.body.password, saltRounds);
+        //     const query = await db.query(
+        //         "INSERT INTO doctor (full_name, email, password, age, phone, gender, specialty_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;",
+        //         [req.body.name, req.body.email, hash, req.body.age, req.body.phone, req.body.gender, specializationResult.rows[0].id]
+        //     );
+        //     console.log(query.rows[0]);
+        //     return res.status(200).json({message: "Doctor registered successfully"});
+        // } else if (role == "admin") {
+        //     const result = await db.query("SELECT * FROM admin WHERE email = $1", [req.body.email]);
+        //     if (result.rows.length > 0) {
+        //         return res.status(400).json({message: "Email already exists"});
+        //     }
+        //     const hash = await bcrypt.hash(req.body.password, saltRounds);
+        //     const query = await db.query(
+        //         "INSERT INTO admin (full_name, email, password) VALUES ($1, $2, $3) RETURNING *;",
+        //         [req.body.name, req.body.email, hash]
+        //     );
+        //     console.log(query.rows[0]);
+        //     return res.status(200).json({message: "Admin registered successfully"});
         } else {
             return res.status(400).json({message: "Invalid role"});
         }
@@ -85,15 +85,18 @@ app.post('/signup', async (req, res) => {
         return res.status(500).json({message: "Internal Server Error"});
     }
 });
-async function authenticateUser(email, password, doctor, admin) {
+async function authenticateUser(email, password, doctor) {
 try{
     let query;
+    let userType;
     if (doctor) {
         query = "SELECT * FROM doctor WHERE email = $1 ";
-    } else if (admin) {
-        query = "SELECT * FROM admin WHERE email = $1 ";
+        userType = 'doctor';
+    // } else if (admin) {
+    //     query = "SELECT * FROM admin WHERE email = $1 ";
     } else {
         query = "SELECT * FROM patient WHERE email = $1 ";
+        userType = 'patient';
     }
     const result = await db.query(query, [email]);
     if (result.rows.length > 0) {
@@ -102,6 +105,8 @@ try{
         console.log(match);
         if (match) {
             delete user.password;
+            user.userType = userType; 
+            console.log(user);
             return user;
         }
     }
@@ -113,12 +118,12 @@ catch (error) {
 
 }}
 app.post('/signin', async (req,res)=>{
-    const {email,password,admin,doctor} = req.body;
+    const {email,password,doctor} = req.body;
     // const hash = await bcrypt.hash(password, saltRounds);
     // console.log(hash);
-    if (admin && doctor) {
-        return res.status(400).json({message: "Choose only one role"});
-    }
+    // if (admin && doctor) {
+    //     return res.status(400).json({message: "Choose only one role"});
+    // }
     if (!email || !password) {
         return res.status(400).json({message: "Email and password are required"});
     }
@@ -127,7 +132,7 @@ app.post('/signin', async (req,res)=>{
     }
     // Assuming you have an authenticateUser function defined elsewhere
     try{
-    const user = await authenticateUser(email,password,doctor,admin);
+    const user = await authenticateUser(email,password,doctor);
     if (user !== null) {
         return res.status(200).json({message: "Login successful", user});
     } else {

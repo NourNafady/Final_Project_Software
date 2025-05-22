@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { use, useState } from 'react';
 import { FaEnvelope, FaKey } from 'react-icons/fa';
 import "./styles/signin.css";
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+
 
 export default function SignIn() {
   const [formData, setFormData] = useState({
@@ -9,16 +11,17 @@ export default function SignIn() {
     password: ''
   });
   const [doctor, setDoctor] = useState(false);
-  const [admin, setAdmin] = useState(false);
+  // const [admin, setAdmin] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
-  const handleAdminChange = () => {
-    const newValue = !admin;
-    setAdmin(newValue);
-    console.log(newValue);
-    localStorage.setItem('rememberAdmin', newValue);
-  };
+  // const handleAdminChange = () => {
+  //   const newValue = !admin;
+  //   setAdmin(newValue);
+  //   console.log(newValue);
+  //   localStorage.setItem('rememberAdmin', newValue);
+  // };
 
   // Handle doctor checkbox changeU
   const handleDoctorChange = () => {
@@ -64,9 +67,9 @@ export default function SignIn() {
     if (formData.email && !emailRegex.test(formData.email)) {
       newErrors.email = "Please enter a valid email address";
     }
-    if (doctor && admin) {
-      newErrors.role = "choose only one role";
-    }
+    // if (doctor && admin) {
+    //   newErrors.role = "choose only one role";
+    // }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -91,7 +94,7 @@ export default function SignIn() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          admin: admin,
+          // admin: admin,
           doctor: doctor
         }),
       });
@@ -110,9 +113,20 @@ export default function SignIn() {
       if (data.token) {
         localStorage.setItem('authToken', data.token);
       }
-      
-      // Redirect to dashboard or home page
-      window.location.href = '/';
+      if (data.user.userType) {
+        localStorage.setItem('userType', data.user.userType);
+        
+      }
+      // Redirect to appropriate page
+      console.log(data.user.userType);
+      console.log("vfgfgfssssssfgsvvvvvvvgf");
+    if (data.user.userType === 'doctor') {
+      console.log('doctor');
+      window.location.href = "/doctorApp";
+    } else if (data.user.userType === 'patient') {
+      console.log('patient');
+       window.location.href = '/';
+    }
       
     } catch (error) {
       console.error('Error during login:', error);
@@ -167,15 +181,15 @@ export default function SignIn() {
           {errors.password && <div className="error-message">{errors.password}</div>}
           
           <div className="options-row">
-            <div className="remember-me">
+            {/* {<div className="remember-me">
               <input
                 type="checkbox"
                 id="admin"
                 checked={admin}
                 onChange={handleAdminChange}
-              />
+              /> }
               <label htmlFor="remember">admin ?</label>
-            </div>
+            </div> */}
             <div className="remember-me">
               <input
                 type="checkbox"
@@ -199,7 +213,7 @@ export default function SignIn() {
           </button>
           
           <div className="login-link">
-            Do not Have Account Yet? <Link to="/signup">Sign Up</Link>
+            don't have an account yet? <Link to="/signup">Sign Up</Link>
           </div>
         </form>
       </div>
