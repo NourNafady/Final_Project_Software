@@ -8,6 +8,10 @@ export default function Navbar() {
       localStorage.getItem("rememberDoctor") === "true"
     );
   };
+
+  const isPatient = () => {
+    return localStorage.getItem("userType") === "patient";
+  };
   
   return (
     <div className="navbar-container">
@@ -16,10 +20,21 @@ export default function Navbar() {
           <div className="logo">
           </div>
           <ul className="nav-links">
-            <li><NavLink to="/signup">signup</NavLink></li>
-            <li><NavLink to="/signin">signin</NavLink></li>
-            {isDoctor() ? <li><NavLink to="/">home</NavLink></li> : null} 
-            {!isDoctor() ? <li><NavLink to="/doctorApp">doctors</NavLink></li> : null} 
+            {isPatient() ? (
+              <>
+                <li><NavLink to="/home">Home</NavLink></li>
+                <li><NavLink to="/signup">Sign Up</NavLink></li>
+                <li><NavLink to="/signin">Sign In</NavLink></li>
+                <li><NavLink to="/my-appointments">My Appointments</NavLink></li>
+              </>
+            ) : isDoctor() ? (
+              <>
+                <li><NavLink to="/">Home</NavLink></li>
+                <li><NavLink to="/signup">Sign Up</NavLink></li>
+                <li><NavLink to="/signin">Sign In</NavLink></li>
+                <li><NavLink to="/doctorApp">Doctors</NavLink></li>
+              </>
+            ) : null}
           </ul>
         </div>
         <div className="user-email">
