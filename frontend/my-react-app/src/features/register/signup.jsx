@@ -273,7 +273,7 @@ export default function Signup() {
             >
               <option value="">Select Role</option>
               <option value="patient">Patient</option>
-              <option value="doctor">Doctor</option>
+              {/* <option value="doctor">Doctor</option> */}
 
 
             </select>
@@ -281,7 +281,7 @@ export default function Signup() {
           {errors.role && <div className="error-message">{errors.role}</div>}
 
           {/* Only show specialization if doctor */}
-          {formData.role === 'doctor' && (
+          {/* {formData.role === 'doctor' && (
             <div className="input-group">
               <div className="icon-container">
                 <FaUserMd />
@@ -299,7 +299,7 @@ export default function Signup() {
           )}
           {errors.specialization && (
             <div className="error-message">{errors.specialization}</div>
-          )}
+          )} */}
 
           <button 
             type="submit" 

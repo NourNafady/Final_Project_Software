@@ -215,9 +215,138 @@ app.get('/doctor/:id/time-slots', async (req, res) => {
     }
 });
 
+app.get('/doctor/:doctorEmail/my-appointment-slots', async (req, res) => {
+  const doctorEmail= req.params.doctorEmail;
+// console.log(`Received request for doctor: ${doctorEmail}'s appointment slots.`);
+  try {   
+    const queryText = `
+      SELECT
+      r.id AS slot_id,
+        d.start_time,
+        d.end_time,
+        p.full_name AS patient_name,
+        p.email AS patient_email,
+        p.phone AS patient_phone,
+        d.date
+      FROM
+        registration r
+      inner JOIN
+        doctor_hours d ON d.id = r.slot_id 
+      inner JOIN
+        patient p ON r.patient_id = p.id
+      inner JOIN
+       doctor doc ON doc.id = d.doctor_id
+      WHERE
+        doc.email = $1 AND d.date >= CURRENT_DATE
+      ORDER BY
+         d.date,d.start_time;
+    `;
 
+    const result = await db.query(queryText, [doctorEmail]);
 
+    const formatted = result.rows.map(row => ({
+      id: row.slot_id,
+      date: row.date,
+      start_time: row.start_time,
+      end_time: row.end_time,
+      patient_name: row.patient_name || null,
+      patient_email: row.patient_email || null,
+      patient_phone: row.patient_phone || null,
+    }));
 
+    // 4. Send the successful response
+    res.status(200).json(formatted);
+
+  } catch (error) {
+    console.error('Error fetching appointment slots:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+});
+
+// API to insert a new doctor
+app.post('/admin/add-doctor', async (req, res) => {
+    try {
+        const { 
+            full_name, 
+            email, 
+            password, 
+            age, 
+            phone, 
+            gender, 
+            specialty_id, 
+            clinic_id 
+        } = req.body;
+
+        // Validate required fields
+        if (!full_name || !email || !password || !age || !phone || !gender || !specialty_id || !clinic_id) {
+            return res.status(400).json({
+                message: "All fields are required: full_name, email, password, age, phone, gender, specialty_id, clinic_id"
+            });
+        }
+
+        // Validate email format
+        if (!validator.isEmail(email)) {
+            return res.status(400).json({ message: "Invalid email format" });
+        }
+
+        // Validate gender
+        if (!['male', 'female'].includes(gender.toLowerCase())) {
+            return res.status(400).json({ message: "Gender must be 'male' or 'female'" });
+        }
+
+        // Validate age
+        if (age < 18 || age > 100) {
+            return res.status(400).json({ message: "Age must be between 18 and 100" });
+        }
+
+        // Check if email already exists
+        const emailCheck = await db.query("SELECT * FROM doctor WHERE email = $1", [email]);
+        if (emailCheck.rows.length > 0) {
+            return res.status(400).json({ message: "Email already exists" });
+        }
+
+        // Check if phone already exists
+        const phoneCheck = await db.query("SELECT * FROM doctor WHERE phone = $1", [phone]);
+        if (phoneCheck.rows.length > 0) {
+            return res.status(400).json({ message: "Phone number already exists" });
+        }
+
+        // Validate specialty exists
+        const specialtyCheck = await db.query("SELECT * FROM specialty WHERE id = $1", [specialty_id]);
+        if (specialtyCheck.rows.length === 0) {
+            return res.status(400).json({ message: "Invalid specialty_id" });
+        }
+
+        // Validate clinic exists
+        const clinicCheck = await db.query("SELECT * FROM clinic WHERE id = $1", [clinic_id]);
+        if (clinicCheck.rows.length === 0) {
+            return res.status(400).json({ message: "Invalid clinic_id" });
+        }
+
+        // Hash password
+        const hash = await bcrypt.hash(password, saltRounds);
+
+        // Insert new doctor
+        const result = await db.query(
+            `INSERT INTO doctor (full_name, email, password, age, phone, gender, specialty_id, clinic_id) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+            [full_name, email, hash, age, phone, gender.toLowerCase(), specialty_id, clinic_id]
+        );
+
+        // Remove password from response
+        const doctor = result.rows[0];
+        delete doctor.password;
+
+        res.status(201).json({
+            message: "Doctor created successfully",
+            doctor: doctor
+        });
+
+    } catch (error) {
+        console.error('Error creating doctor:', error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+});
 app.listen(port, () => {
     console.log(`Server listening on port ${port}`);
 });

@@ -2,7 +2,7 @@ import { use, useState } from 'react';
 import { FaEnvelope, FaKey } from 'react-icons/fa';
 import "./styles/signin.css";
 import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+
 
 
 export default function SignIn() {
@@ -14,7 +14,6 @@ export default function SignIn() {
   // const [admin, setAdmin] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const navigate = useNavigate();
 
   // const handleAdminChange = () => {
   //   const newValue = !admin;
@@ -117,18 +116,15 @@ export default function SignIn() {
         localStorage.setItem('userType', data.user.userType);
         
       }
-      // Redirect to appropriate page
-      console.log(data.user.userType);
-      console.log("vfgfgfssssssfgsvvvvvvvgf");
       if (localStorage.getItem("userType") === "doctor" ||
       localStorage.getItem("rememberDoctor")  === true) {
       console.log('doctor');
-      // window.location.href = "/doctorApp";
-      navigate('/doctorApp');
+      window.location.href = "/doctorsApp";
+
     } else  {
       console.log('patient');
-      //  window.location.href = '/';
-      navigate('/');
+      window.location.href = '/';
+      // navigate('/');
     }
       
     } catch (error) {

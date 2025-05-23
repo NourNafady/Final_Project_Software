@@ -35,7 +35,7 @@ CREATE TABLE patient(
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
     age INTEGER NOT NULL,
-    phone VARCHAR(20) NOT NULL UNIQUE,
+    phone VARCHAR(20) NOT NULL ,
     gender g NOT NULL
 );
 
@@ -53,7 +53,7 @@ CREATE TABLE doctor(
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
     age INTEGER NOT NULL,
-    phone VARCHAR(20) NOT NULL UNIQUE,
+    phone VARCHAR(20) NOT NULL ,
     gender g NOT NULL,
     specialty_id INTEGER REFERENCES specialty(id) NOT NULL,
     clinic_id INTEGER REFERENCES clinic(id) NOT NULL

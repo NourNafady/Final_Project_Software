@@ -7,19 +7,20 @@ export default function DoctorAppointment() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+
   useEffect(() => {
     const fetchDoctorSlots = async () => {
       try {
         // Get the doctor's ID from localStorage (should be set at login)
         //! userEmail is the doctorID
-        const doctorId = localStorage.getItem('userEmail');
-        if (!doctorId) {
+        const doctorEmail = localStorage.getItem('userEmail');
+        if (!doctorEmail ) {
           setError('Doctor not logged in.');
           setLoading(false);
           return;
         }
-        //! edit API URL to match your backend 3lwa
-        const response = await fetch(`http://localhost:4000/doctor/${doctorId}/time-slots`);
+       
+        const response = await fetch(`http://localhost:4000/doctor/${doctorEmail}/my-appointment-slots`);
         if (!response.ok) {
           throw new Error('Failed to fetch appointment slots');
         }
@@ -48,12 +49,14 @@ export default function DoctorAppointment() {
         <div className="appointments-grid">
           {slots.map(slot => (
             <AppointmentCard
-              key={slot.id}
               id={slot.id}
-              date={slot.date}
-              weekdays={slot.weekdays}
               startTime={slot.start_time}
               endTime={slot.end_time}
+              patient_name={slot.patient_name}
+              patient_email={slot.patient_email}
+              patient_phone={slot.patient_phone} 
+              date={slot.date}
+
             />
           ))}
         </div>
