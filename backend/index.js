@@ -199,20 +199,48 @@ app.get('/doctors', async (req, res) => {
 });
 
 
+// Helper to get next date for a given weekday string
+function getNextDateForWeekday(weekday) {
+  const daysOfWeek = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const today = new Date();
+  const todayIdx = today.getDay();
+  const targetIdx = daysOfWeek.indexOf(weekday);
+  let diff = targetIdx - todayIdx;
+  if (diff < 0) diff += 7;
+  const nextDate = new Date(today);
+  nextDate.setDate(today.getDate() + diff);
+  // Format as YYYY-MM-DD
+  return nextDate.toISOString().slice(0,10);
+}
+
 app.get('/doctor/:id/time-slots', async (req, res) => {
-    const doctorId = req.params.id;
-    console.log(doctorId);
-    try {
-        const result = await db.query("SELECT * FROM doctor_hours WHERE doctor_id = $1;", [doctorId]);
-        if (result.rows.length > 0) {
-            res.status(200).json(result.rows);
-        } else {
-            res.status(404).json({ message: "No time slots found for this doctor" });
-        }
-    } catch (error) {
-        console.error('Error fetching time slots:', error);
-        res.status(500).json({ message: "Internal Server Error" });
-    }
+  const doctorId = req.params.id;
+  try {
+    const result = await db.query("SELECT * FROM doctor_hours WHERE doctor_id = $1;", [doctorId]);
+    // Expand each row's weekdays into separate slots with a date
+    const slots = [];
+    result.rows.forEach(row => {
+      // row.weekdays is an array, but if it's a string, parse it
+      let weekdays = row.weekdays;
+      if (typeof weekdays === "string") {
+        weekdays = weekdays.replace(/[{}]/g, '').split(',');
+      }
+      weekdays.forEach(weekday => {
+        slots.push({
+          id: row.id,
+          doctor_id: row.doctor_id,
+          weekday: weekday,
+          date: getNextDateForWeekday(weekday),
+          start_time: row.start_time,
+          end_time: row.end_time
+        });
+      });
+    });
+    res.json(slots);
+  } catch (error) {
+    console.error('Error fetching doctor slots:', error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 });
 
 app.get('/doctor/:doctorEmail/my-appointment-slots', async (req, res) => {
@@ -263,90 +291,7 @@ app.get('/doctor/:doctorEmail/my-appointment-slots', async (req, res) => {
   }
 });
 
-// API to insert a new doctor
-app.post('/admin/add-doctor', async (req, res) => {
-    try {
-        const { 
-            full_name, 
-            email, 
-            password, 
-            age, 
-            phone, 
-            gender, 
-            specialty_id, 
-            clinic_id 
-        } = req.body;
 
-        // Validate required fields
-        if (!full_name || !email || !password || !age || !phone || !gender || !specialty_id || !clinic_id) {
-            return res.status(400).json({
-                message: "All fields are required: full_name, email, password, age, phone, gender, specialty_id, clinic_id"
-            });
-        }
-
-        // Validate email format
-        if (!validator.isEmail(email)) {
-            return res.status(400).json({ message: "Invalid email format" });
-        }
-
-        // Validate gender
-        if (!['male', 'female'].includes(gender.toLowerCase())) {
-            return res.status(400).json({ message: "Gender must be 'male' or 'female'" });
-        }
-
-        // Validate age
-        if (age < 18 || age > 100) {
-            return res.status(400).json({ message: "Age must be between 18 and 100" });
-        }
-
-        // Check if email already exists
-        const emailCheck = await db.query("SELECT * FROM doctor WHERE email = $1", [email]);
-        if (emailCheck.rows.length > 0) {
-            return res.status(400).json({ message: "Email already exists" });
-        }
-
-        // Check if phone already exists
-        const phoneCheck = await db.query("SELECT * FROM doctor WHERE phone = $1", [phone]);
-        if (phoneCheck.rows.length > 0) {
-            return res.status(400).json({ message: "Phone number already exists" });
-        }
-
-        // Validate specialty exists
-        const specialtyCheck = await db.query("SELECT * FROM specialty WHERE id = $1", [specialty_id]);
-        if (specialtyCheck.rows.length === 0) {
-            return res.status(400).json({ message: "Invalid specialty_id" });
-        }
-
-        // Validate clinic exists
-        const clinicCheck = await db.query("SELECT * FROM clinic WHERE id = $1", [clinic_id]);
-        if (clinicCheck.rows.length === 0) {
-            return res.status(400).json({ message: "Invalid clinic_id" });
-        }
-
-        // Hash password
-        const hash = await bcrypt.hash(password, saltRounds);
-
-        // Insert new doctor
-        const result = await db.query(
-            `INSERT INTO doctor (full_name, email, password, age, phone, gender, specialty_id, clinic_id) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-            [full_name, email, hash, age, phone, gender.toLowerCase(), specialty_id, clinic_id]
-        );
-
-        // Remove password from response
-        const doctor = result.rows[0];
-        delete doctor.password;
-
-        res.status(201).json({
-            message: "Doctor created successfully",
-            doctor: doctor
-        });
-
-    } catch (error) {
-        console.error('Error creating doctor:', error);
-        res.status(500).json({ message: "Internal Server Error" });
-    }
-});
 app.listen(port, () => {
     console.log(`Server listening on port ${port}`);
 });

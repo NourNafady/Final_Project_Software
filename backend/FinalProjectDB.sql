@@ -196,42 +196,80 @@ INSERT INTO doctor (full_name, email, password, age, phone, gender, specialty_id
   ('Dr. Vic Verify',  'vic.verify@example.com',   crypt('passVic6', gen_salt('bf')),    48, '01000000076', 'male',   8, 8);
 
 
+--Code of Insertion for the doctor_hours table
 WITH numbered AS (
-  SELECT 
+  SELECT
     id,
     ROW_NUMBER() OVER (ORDER BY id) AS rn
   FROM doctor
+),
+master_wdays AS (
+  SELECT
+    ARRAY[
+      'Monday'   :: weekday_enum,
+      'Tuesday'  :: weekday_enum,
+      'Wednesday':: weekday_enum,
+      'Thursday' :: weekday_enum,
+      'Friday'   :: weekday_enum
+    ] AS wdays
+),
+rotated AS (
+  SELECT
+    n.id,
+    n.rn,
+    CASE
+      WHEN (n.rn - 1) % array_length(m.wdays,1) = 0
+      THEN m.wdays
+      ELSE
+        array_cat(
+          m.wdays[((n.rn - 1) % array_length(m.wdays,1))+1 : array_length(m.wdays,1)],
+          m.wdays[1 : ((n.rn - 1) % array_length(m.wdays,1))]
+        )
+    END AS rotated_wdays
+  FROM numbered n
+  CROSS JOIN master_wdays m
+),
+exploded AS (
+  SELECT
+    r.id,
+    r.rn,
+    u.wday,
+    u.ordinal AS weekday_idx
+  FROM rotated r
+  -- this is the correct place to use WITH ORDINALITY
+  CROSS JOIN LATERAL
+    unnest(r.rotated_wdays) WITH ORDINALITY AS u(wday, ordinal)
 )
 INSERT INTO doctor_hours (date, doctor_id, weekdays, start_time, end_time)
 SELECT
-  -- each doctor gets a unique date = today + (rn-1) days
-  (CURRENT_DATE + (rn - 1) * INTERVAL '1 day')::date         AS date,
+  -- doctor‐specific base date
+  (CURRENT_DATE + (rn - 1) * INTERVAL '1 day')::date      AS date,
 
-  id,
+  id                                                       AS doctor_id,
 
-  ARRAY['Monday','Tuesday','Wednesday','Thursday','Friday']::weekday_enum[],
+  -- one‐day array
+  ARRAY[wday]                                              AS weekdays,
 
-  -- generate start = 10:00 + (rn-1)*15min, clamped to [10:00,16:00]
+  -- start = 10:00 + doctor-offset + weekday-offset, clamped
   GREATEST(
     LEAST(
-      (TIME '10:00:00' + (rn - 1) * INTERVAL '15 minutes')::time,
-      TIME '16:00:00'
-    ),
-    TIME '10:00:00'
-  )                                                             AS start_time,
+      (TIME '10:00:00' + (rn - 1) * INTERVAL '15 minutes')
+      + (weekday_idx - 1) * INTERVAL '30 minutes'
+    , TIME '16:00:00')
+  , TIME '10:00:00')                                        AS start_time,
 
-  -- end = start + 10h, clamped to 22:30
+  -- end = start + 10h, but ≤ 22:30
   LEAST(
     (
       GREATEST(
         LEAST(
-          (TIME '10:00:00' + (rn - 1) * INTERVAL '15 minutes')::time,
-          TIME '16:00:00'
-        ),
-        TIME '10:00:00'
-      ) + INTERVAL '10 hours'
-    )::time,
-    TIME '22:30:00'
-  )                                                             AS end_time
+          (TIME '10:00:00' + (rn - 1) * INTERVAL '15 minutes')
+          + (weekday_idx - 1) * INTERVAL '30 minutes'
+        , TIME '16:00:00')
+      , TIME '10:00:00')
+      + INTERVAL '10 hours'
+    )::time
+  , TIME '22:30:00')                                        AS end_time
 
-FROM numbered;
+FROM exploded;
+
