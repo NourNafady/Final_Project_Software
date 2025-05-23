@@ -261,6 +261,55 @@ app.get('/doctor/:doctorEmail/my-appointment-slots', async (req, res) => {
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });
+
+app.get('/patient/:patientEmail/my-appointment-slots', async (req, res) => {
+  const patientEmail= req.params.patientEmail;
+  try {   
+    const queryText = `
+      SELECT
+      r.id AS slot_id,
+        d.start_time,
+        d.end_time,
+        doc.full_name AS doctor_name,
+        doc.email AS doctor_email,
+        doc.phone AS doctor_phone,
+        d.date
+      FROM
+        registration r
+      inner JOIN
+        doctor_hours d ON d.id = r.slot_id 
+      inner JOIN
+        patient p ON r.patient_id = p.id
+      inner JOIN
+       doctor doc ON doc.id = d.doctor_id
+      WHERE
+        p.email = $1 AND d.date >= CURRENT_DATE
+      ORDER BY
+         d.date,d.start_time;
+    `;
+
+    const result = await db.query(queryText, [patientEmail]);
+
+    const formatted = result.rows.map(row => ({
+      id: row.slot_id,
+      date: row.date,
+      start_time: row.start_time,
+      end_time: row.end_time,
+      doctor_name: row.doctor_name || null,
+      doctor_email: row.doctor_email || null,
+      doctor_phone: row.doctor_phone || null,
+    }));
+
+    // 4. Send the successful response
+    res.status(200).json(formatted);
+
+  } catch (error) {
+    console.error('Error fetching appointment slots:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+});
+
+
 app.post('/doctor/makeappointment', async (req, res) => {
   try {
     const { doctor_clinic_time_id, patient_id } = req.body;

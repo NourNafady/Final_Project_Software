@@ -2,9 +2,9 @@ CREATE TYPE g AS ENUM ('male', 'female');
 
 CREATE TYPE stateOfRegistration AS ENUM ('Booked', 'Available');
 
-CREATE TYPE weekday_enum AS ENUM (
-    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-);
+-- CREATE TYPE weekday_enum AS ENUM (
+--     'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+-- );
 
 
 CREATE TABLE specialty (
@@ -121,7 +121,7 @@ INSERT INTO clinic_hours (clinic_id, open_time, close_time) VALUES
     (5, '08:30:00','17:30:00'),
     (6, '09:30:00','18:30:00'),
     (7, '07:00:00','15:00:00'),
-    (8                   , '11:00:00','20:00:00');
+    (8, '11:00:00','20:00:00');
 
 -- Code of Insertion for the doctor table
 -- Make sure pgcrypto is enabled:

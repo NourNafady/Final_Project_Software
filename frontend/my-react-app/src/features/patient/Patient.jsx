@@ -9,7 +9,7 @@ export default function PatientAppointment() {
 
 
   useEffect(() => {
-    const fetchDoctorSlots = async () => {
+    const fetchPatientSlots = async () => {
       try {
         // Get the doctor's ID from localStorage (should be set at login)
         //! userEmail is the doctorID
@@ -20,7 +20,7 @@ export default function PatientAppointment() {
           return;
         }
        
-        const response = await fetch(`http://localhost:4000/doctor/${patientEmail}/my-appointment-slots`);
+        const response = await fetch(`http://localhost:4000/patient/${patientEmail}/my-appointment-slots`);
         if (!response.ok) {
           throw new Error('Failed to fetch appointment slots');
         }
@@ -32,7 +32,7 @@ export default function PatientAppointment() {
         setLoading(false);
       }
     };
-    fetchDoctorSlots();
+    fetchPatientSlots();
   }, []);
 
   if (loading) return <div className="loading">Loading appointment slots...</div>;
@@ -52,9 +52,9 @@ export default function PatientAppointment() {
               id={slot.id}
               startTime={slot.start_time}
               endTime={slot.end_time}
-              patient_name={slot.patient_name}
-              patient_email={slot.patient_email}
-              patient_phone={slot.patient_phone} 
+              doctor_name={slot.doctor_name}
+              doctor_email={slot.doctor_email}
+              doctor_phone={slot.doctor_phone} 
               date={slot.date}
 
             />

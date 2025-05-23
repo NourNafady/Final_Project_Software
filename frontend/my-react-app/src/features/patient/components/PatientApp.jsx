@@ -3,9 +3,9 @@ import "../styles/patient_card.css";
 export default function PatientAppointment({ 
   id,
   date,
-  patient_name,
-  patient_email,
-  patient_phone,
+  doctor_name,
+  doctor_email,
+  doctor_phone,
   weekdays=[],
   startTime,
   endTime
@@ -31,11 +31,11 @@ export default function PatientAppointment({
         <div className="time">{startTime} - {endTime}</div>
       </div>
       <div className="patient-details">
-        <h4>Patient Information:</h4>
-        {patient_name && <p><strong>Name:</strong> {patient_name}</p>}
-        {patient_email && <p><strong>Email:</strong> {patient_email}</p>}
-        {patient_phone && <p><strong>Phone:</strong> {patient_phone}</p>}
-        {!patient_name && !patient_email && !patient_phone && (
+        <h4>Doctor Information:</h4>
+        {doctor_name && <p><strong>Name:</strong> {doctor_name}</p>}
+        {doctor_email && <p><strong>Email:</strong> {doctor_email}</p>}
+        {doctor_phone && <p><strong>Phone:</strong> {doctor_phone}</p>}
+        {!doctor_name && !doctor_email && !doctor_phone && (
           <p>No patient details for this slot yet.</p>
         )}
       </div>
