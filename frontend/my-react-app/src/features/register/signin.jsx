@@ -116,6 +116,7 @@ export default function SignIn() {
         localStorage.setItem('userType', data.user.userType);
         
       }
+      localStorage.setItem('userId', data.user.id);
       if (localStorage.getItem("userType") === "doctor" ||
       localStorage.getItem("rememberDoctor")  === true) {
       console.log('doctor');

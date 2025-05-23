@@ -23,7 +23,6 @@ CREATE TABLE clinic (
 CREATE TABLE clinic_hours (
     hours_id     SERIAL PRIMARY KEY,
     clinic_id    INTEGER REFERENCES clinic(id) NOT NULL,
-    weekdays      weekday_enum[] NOT NULL,
     open_time    TIME NOT NULL,
     close_time   TIME NOT NULL
     -- status state NOT NULL
@@ -64,11 +63,10 @@ CREATE TABLE doctor_hours (
     id SERIAL PRIMARY KEY,
     date DATE NOT NULL DEFAULT now(),
     doctor_id INTEGER NOT NULL REFERENCES doctor(id) ON DELETE CASCADE,
-    weekdays weekday_enum[] NOT NULL,
+  
     start_time TIME NOT NULL,
-    end_time TIME NOT NULL,
-    CONSTRAINT uniq_weekly_slot
-    UNIQUE (doctor_id, weekdays, start_time)
+    end_time TIME NOT NULL
+ 
 );
 
 
@@ -81,7 +79,7 @@ CREATE TABLE registration (
     patient_id        INTEGER NOT NULL
     REFERENCES patient(id)
     ON DELETE RESTRICT,
-    status stateOfRegistration NOT NULL,
+    status stateofregistration NOT NULL,
     registration_time TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -115,15 +113,15 @@ INSERT INTO clinic (address, phone, specialty_id) VALUES
 
 
 -- Code of Insertion for the clinic_hours table
-INSERT INTO clinic_hours (clinic_id, weekdays, open_time, close_time) VALUES
-    (1, ARRAY['Monday','Tuesday','Wednesday','Thursday','Friday']   ::weekday_enum[], '08:00:00','17:00:00'),
-    (2, ARRAY['Tuesday','Wednesday','Thursday','Friday','Saturday']::weekday_enum[], '09:00:00','18:00:00'),
-    (3, ARRAY['Monday','Wednesday','Friday']                         ::weekday_enum[], '07:30:00','16:30:00'),
-    (4, ARRAY['Thursday','Friday','Saturday','Sunday']              ::weekday_enum[], '10:00:00','19:00:00'),
-    (5, ARRAY['Monday','Tuesday','Wednesday','Thursday','Friday']   ::weekday_enum[], '08:30:00','17:30:00'),
-    (6, ARRAY['Saturday','Sunday']                                  ::weekday_enum[], '09:30:00','18:30:00'),
-    (7, ARRAY['Monday','Tuesday','Wednesday']                       ::weekday_enum[], '07:00:00','15:00:00'),
-    (8, ARRAY['Friday','Saturday','Sunday']                         ::weekday_enum[], '11:00:00','20:00:00');
+INSERT INTO clinic_hours (clinic_id, open_time, close_time) VALUES
+    (1, '08:00:00','17:00:00'),
+    (2,  '09:00:00','18:00:00'),
+    (3,  '07:30:00','16:30:00'),
+    (4, '10:00:00','19:00:00'),
+    (5, '08:30:00','17:30:00'),
+    (6, '09:30:00','18:30:00'),
+    (7, '07:00:00','15:00:00'),
+    (8                   , '11:00:00','20:00:00');
 
 -- Code of Insertion for the doctor table
 -- Make sure pgcrypto is enabled:
@@ -197,79 +195,42 @@ INSERT INTO doctor (full_name, email, password, age, phone, gender, specialty_id
 
 
 --Code of Insertion for the doctor_hours table
-WITH numbered AS (
+-- 1. Define the parameters: date range, working hours, slot length
+WITH params AS (
   SELECT
-    id,
-    ROW_NUMBER() OVER (ORDER BY id) AS rn
-  FROM doctor
+    '2025-06-01'::date   AS start_date,
+    '2025-06-07'::date   AS end_date,
+    '09:00'::time        AS work_start,
+    '17:00'::time        AS work_end,
+    interval '1 hour'    AS slot_length
 ),
-master_wdays AS (
+
+-- 2. Build each day's slots by casting to timestamp and using a LATERAL generate_series
+slots AS (
   SELECT
-    ARRAY[
-      'Monday'   :: weekday_enum,
-      'Tuesday'  :: weekday_enum,
-      'Wednesday':: weekday_enum,
-      'Thursday' :: weekday_enum,
-      'Friday'   :: weekday_enum
-    ] AS wdays
-),
-rotated AS (
-  SELECT
-    n.id,
-    n.rn,
-    CASE
-      WHEN (n.rn - 1) % array_length(m.wdays,1) = 0
-      THEN m.wdays
-      ELSE
-        array_cat(
-          m.wdays[((n.rn - 1) % array_length(m.wdays,1))+1 : array_length(m.wdays,1)],
-          m.wdays[1 : ((n.rn - 1) % array_length(m.wdays,1))]
-        )
-    END AS rotated_wdays
-  FROM numbered n
-  CROSS JOIN master_wdays m
-),
-exploded AS (
-  SELECT
-    r.id,
-    r.rn,
-    u.wday,
-    u.ordinal AS weekday_idx
-  FROM rotated r
-  -- this is the correct place to use WITH ORDINALITY
-  CROSS JOIN LATERAL
-    unnest(r.rotated_wdays) WITH ORDINALITY AS u(wday, ordinal)
+    (ts)::date                      AS date,
+    (ts)::time                      AS start_time,
+    (ts + slot_length)::time        AS end_time
+  FROM params
+  -- one row per date in the range
+  CROSS JOIN generate_series(params.start_date,
+                             params.end_date,
+                             interval '1 day') AS day
+  -- for each day, generate times from  day+work_start  to  day+work_end - slot_length
+  CROSS JOIN LATERAL generate_series(
+    (day + params.work_start)::timestamp,
+    (day + params.work_end   - params.slot_length)::timestamp,
+    params.slot_length
+  ) AS ts
 )
-INSERT INTO doctor_hours (date, doctor_id, weekdays, start_time, end_time)
+
+-- 3. Insert every slot for every doctor
+INSERT INTO doctor_hours (date, doctor_id, start_time, end_time)
 SELECT
-  -- doctor‐specific base date
-  (CURRENT_DATE + (rn - 1) * INTERVAL '1 day')::date      AS date,
-
-  id                                                       AS doctor_id,
-
-  -- one‐day array
-  ARRAY[wday]                                              AS weekdays,
-
-  -- start = 10:00 + doctor-offset + weekday-offset, clamped
-  GREATEST(
-    LEAST(
-      (TIME '10:00:00' + (rn - 1) * INTERVAL '15 minutes')
-      + (weekday_idx - 1) * INTERVAL '30 minutes'
-    , TIME '16:00:00')
-  , TIME '10:00:00')                                        AS start_time,
-
-  -- end = start + 10h, but ≤ 22:30
-  LEAST(
-    (
-      GREATEST(
-        LEAST(
-          (TIME '10:00:00' + (rn - 1) * INTERVAL '15 minutes')
-          + (weekday_idx - 1) * INTERVAL '30 minutes'
-        , TIME '16:00:00')
-      , TIME '10:00:00')
-      + INTERVAL '10 hours'
-    )::time
-  , TIME '22:30:00')                                        AS end_time
-
-FROM exploded;
-
+  s.date,
+  d.id       AS doctor_id,
+  s.start_time,
+  s.end_time
+FROM slots s
+CROSS JOIN doctor d
+ORDER BY d.id, s.date, s.start_time;

@@ -48,9 +48,9 @@ function HomeScreen() {
                 description={clinic.description}
                 address={clinic.address}
                 phone={clinic.phone}
-                openTime={clinic.open_time}
-                closeTime={clinic.close_time}
-                days={clinic.days} 
+                 openTime={clinic.open_time}
+                 closeTime={clinic.close_time}
+                //  days={clinic.days} 
                 icon={Icon}
                 onClick={() => handleClinicClick(clinic.id)}
               />

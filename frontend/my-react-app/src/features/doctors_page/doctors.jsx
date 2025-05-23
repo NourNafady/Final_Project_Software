@@ -89,7 +89,7 @@ export default function Doctors() {
       }
       
       // Make API request to book appointment
-      const response = await fetch('http://localhost:4000/appointments', {
+      const response = await fetch('http://localhost:4000/doctor/makeappointment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

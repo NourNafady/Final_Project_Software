@@ -213,38 +213,88 @@ app.post('/api/admin/doctors', async (req, res) => {
 // Add doctor hours
 app.post('/api/admin/doctor-hours', async (req, res) => {
   try {
-    const { doctor_id, date, weekdays, start_time, end_time } = req.body;
+    const { doctor_id, date, start_time, end_time } = req.body;
 
     // Validate required fields
-    if (!doctor_id || !date || !weekdays || !start_time || !end_time) {
+    if (!doctor_id || !date || !start_time || !end_time) {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
-    // Validate weekdays array
-    if (!Array.isArray(weekdays) || weekdays.length === 0) {
-      return res.status(400).json({ error: 'At least one weekday must be selected' });
-    }
-    // Capitalize first letter of each weekday (in-place)
-for (let i = 0; i < weekdays.length; i++) {
-  const day = weekdays[i];
-  if (typeof day === 'string' && day.length > 0) {
-    weekdays[i] = day.charAt(0).toUpperCase() + day.slice(1).toLowerCase();
-  }
-}
+
     // Validate that doctor exists
     const doctorCheck = await db.query('SELECT id FROM doctor WHERE id = $1', [doctor_id]);
     if (doctorCheck.rows.length === 0) {
       return res.status(400).json({ error: 'Doctor not found' });
     }
+        // Combine date + times into full datetime objects
+    const startDateTime = new Date(`${date}T${start_time}`);
+    const endDateTime = new Date(`${date}T${end_time}`);
+    const now = new Date();
 
+    // Check 1: start_time must be in the future
+    if (startDateTime <= now) {
+      return res.status(400).json({ error: 'Start time must be in the future' });
+    }
+
+    // Check 2: end_time must be after start_time
+    if (endDateTime <= startDateTime) {
+      return res.status(400).json({ error: 'End time must be after start time' });
+    // 
+    }
+    // check the clinic in open 
+    const clinicCheck = await db.query(`
+      SELECT ch.open_time, ch.close_time
+      FROM doctor d
+      JOIN clinic_hours ch ON d.clinic_id = ch.clinic_id
+      WHERE d.id =$1`,[doctor_id]);
+      if (clinicCheck.rows.length === 0) {
+  return res.status(400).json({ error: 'Clinic hours not found ' });
+      }
+      const clinicOpen = clinicCheck.rows[0].open_time;  // e.g., '08:00:00'
+      const clinicClose = clinicCheck.rows[0].close_time;
+
+      // Convert both times to Date objects for comparison
+      const clinicOpenDateTime = new Date(`${date}T${clinicOpen}`);
+      const clinicCloseDateTime = new Date(`${date}T${clinicClose}`);
+      if (startDateTime < clinicOpenDateTime || endDateTime > clinicCloseDateTime) {
+        return res.status(400).json({ error: 'Time slot is outside clinic hours' });}
+      
+        const conflictQuery = `
+      SELECT *
+      FROM doctor_hours
+      WHERE doctor_id = $1
+        AND date = $2
+         AND date >= CURRENT_DATE
+        
+        AND (
+          (start_time < $4 AND end_time > $3)  -- overlap check
+        );
+    `;
+
+    const conflictResult = await db.query(conflictQuery, [
+      doctor_id,
+      date,
+      start_time,
+      end_time,
+    ]);
+
+    if (conflictResult.rows.length > 0) {
+      console.log('Conflict found:', conflictResult.rows);
+     res.status(400).json({ error: 'This time slot already exists for the doctor' });
+     return { success: false, error: "conflict found" };
+    }
+
+  
+
+   
 
 
     // Insert new doctor hours
     const result = await db.query(`
-      INSERT INTO doctor_hours (doctor_id, date, weekdays, start_time, end_time)
-      VALUES ($1, $2, $3::weekday_enum[], $4, $5)
-      RETURNING id, date, weekdays, start_time, end_time
-    `, [doctor_id, date, weekdays, start_time, end_time]);
+      INSERT INTO doctor_hours (doctor_id, date, start_time, end_time)
+      VALUES ($1, $2, $3, $4)
+      RETURNING id, date, start_time, end_time
+    `, [doctor_id, date, start_time, end_time]);
 
     res.status(201).json({
       success: true,

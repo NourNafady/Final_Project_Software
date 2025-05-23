@@ -153,7 +153,6 @@ app.get('/clinics', async (req, res) => {
         s.name AS name,
         c.address,
         c.phone,
-        ch.weekdays,
         ch.open_time,
         ch.close_time
         FROM clinic c
@@ -169,7 +168,6 @@ app.get('/clinics', async (req, res) => {
         name: row.name,
         address: row.address,
         phone: row.phone,
-        days: row.weekdays, 
         open_time: row.open_time.slice(0,5),   
         close_time: row.close_time.slice(0,5), 
     }));
@@ -199,49 +197,22 @@ app.get('/doctors', async (req, res) => {
 });
 
 
-// Helper to get next date for a given weekday string
-function getNextDateForWeekday(weekday) {
-  const daysOfWeek = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const today = new Date();
-  const todayIdx = today.getDay();
-  const targetIdx = daysOfWeek.indexOf(weekday);
-  let diff = targetIdx - todayIdx;
-  if (diff < 0) diff += 7;
-  const nextDate = new Date(today);
-  nextDate.setDate(today.getDate() + diff);
-  // Format as YYYY-MM-DD
-  return nextDate.toISOString().slice(0,10);
-}
-
 app.get('/doctor/:id/time-slots', async (req, res) => {
-  const doctorId = req.params.id;
-  try {
-    const result = await db.query("SELECT * FROM doctor_hours WHERE doctor_id = $1;", [doctorId]);
-    // Expand each row's weekdays into separate slots with a date
-    const slots = [];
-    result.rows.forEach(row => {
-      // row.weekdays is an array, but if it's a string, parse it
-      let weekdays = row.weekdays;
-      if (typeof weekdays === "string") {
-        weekdays = weekdays.replace(/[{}]/g, '').split(',');
-      }
-      weekdays.forEach(weekday => {
-        slots.push({
-          id: row.id,
-          doctor_id: row.doctor_id,
-          weekday: weekday,
-          date: getNextDateForWeekday(weekday),
-          start_time: row.start_time,
-          end_time: row.end_time
-        });
-      });
-    });
-    res.json(slots);
-  } catch (error) {
-    console.error('Error fetching doctor slots:', error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
+    const doctorId = req.params.id;
+
+    try {
+        const result = await db.query("SELECT d.* FROM doctor_hours AS d FULL OUTER JOIN registration AS r ON d.id = r.slot_id WHERE doctor_id = $1 AND r.id IS NULL AND d.date >=CURRENT_DATE ORDER BY d.date ASC;", [doctorId]);
+        if (result.rows.length > 0) {
+            res.status(200).json(result.rows);
+        } else {
+            res.status(404).json({ message: "No time slots found for this doctor" });
+        }
+    } catch (error) {
+        console.error('Error fetching time slots:', error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
 });
+
 
 app.get('/doctor/:doctorEmail/my-appointment-slots', async (req, res) => {
   const doctorEmail= req.params.doctorEmail;
@@ -288,6 +259,46 @@ app.get('/doctor/:doctorEmail/my-appointment-slots', async (req, res) => {
   } catch (error) {
     console.error('Error fetching appointment slots:', error);
     res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+});
+app.post('/doctor/makeappointment', async (req, res) => {
+  try {
+    const { doctor_clinic_time_id, patient_id } = req.body;
+
+    // Validate inputs
+    if (!doctor_clinic_time_id || !patient_id) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Check if the time slot exists
+    const timeSlotCheck = await db.query(
+      'SELECT * FROM doctor_hours WHERE id = $1',
+      [doctor_clinic_time_id]
+    );
+    if (timeSlotCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Time slot not found' });
+    }
+
+    // Check if an appointment already exists for this slot
+    const existingAppointment = await db.query(
+      'SELECT * FROM registration WHERE slot_id = $1',
+      [doctor_clinic_time_id]
+    );
+    if (existingAppointment.rows.length > 0) {
+      return res.status(409).json({ error: 'This time slot is already booked' });
+    }
+
+    // Insert the new appointment
+    await db.query(
+      'INSERT INTO registration (slot_id, patient_id,status ) VALUES ($1, $2,$3)',
+      [doctor_clinic_time_id, patient_id,"Booked"]
+    );
+
+    return res.status(201).json({ message: 'Appointment booked successfully' });
+
+  } catch (error) {
+    console.error('Error making appointment:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
