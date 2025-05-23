@@ -22,7 +22,7 @@ export default function Navbar() {
           <ul className="nav-links">
             {isPatient() ? (
               <>
-                <li><NavLink to="/home">Home</NavLink></li>
+                <li><NavLink to="/">Home</NavLink></li>
                 <li><NavLink to="/signup">Sign Up</NavLink></li>
                 <li><NavLink to="/signin">Sign In</NavLink></li>
                 <li><NavLink to="/my-appointments">My Appointments</NavLink></li>

@@ -1,0 +1,46 @@
+.doctor-appointments-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .doctor-appointments-container h2 {
+    margin-bottom: 24px;
+    color: #333;
+    text-align: center;
+  }
+  
+  .appointments-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  
+  .loading,
+  .error,
+  .no-appointments {
+    text-align: center;
+    padding: 40px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    margin: 20px 0;
+  }
+  
+  .loading {
+    color: #666;
+  }
+  
+  .error {
+    color: #f44336;
+  }
+  
+  .no-appointments {
+    color: #666;
+  }
+  
+  @media (max-width: 768px) {
+    .appointments-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
