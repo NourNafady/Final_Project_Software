@@ -310,6 +310,32 @@ app.get('/patient/:patientEmail/my-appointment-slots', async (req, res) => {
 });
 
 
+app.post('/patient/cancel-appointment', async (req, res) => {
+  const { slot_id, patient_email } = req.body;
+
+  try {
+    // Check if the appointment exists
+    const appointmentCheck = await db.query(
+      'SELECT * FROM registration WHERE id = $1 AND patient_id = (SELECT id FROM patient WHERE email = $2)',
+      [slot_id, patient_email]
+    );
+
+    if (appointmentCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Appointment not found or does not belong to this patient' });
+    }
+
+    // Delete the appointment
+    await db.query('DELETE FROM registration WHERE id = $1', [slot_id]);
+
+    return res.status(200).json({ message: 'Appointment cancelled successfully' });
+
+  } catch (error) {
+    console.error('Error cancelling appointment:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 app.post('/doctor/makeappointment', async (req, res) => {
   try {
     const { doctor_clinic_time_id, patient_id } = req.body;

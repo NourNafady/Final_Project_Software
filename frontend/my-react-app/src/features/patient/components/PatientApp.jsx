@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import "../styles/patient_card.css";
 
 export default function PatientAppointment({ 
@@ -8,8 +9,10 @@ export default function PatientAppointment({
   doctor_phone,
   weekdays=[],
   startTime,
-  endTime
+  endTime,
+  onCancel // <-- add onCancel prop
 }) {
+  const [cancelling, setCancelling] = useState(false);
   const formattedDate = new Date(date).toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short', 
@@ -18,6 +21,14 @@ export default function PatientAppointment({
 
   // Format weekdays array as comma-separated string
   const formattedWeekdays = Array.isArray(weekdays) ? weekdays.join(', ') : weekdays;
+
+  const handleCancel = async () => {
+    if (window.confirm('Are you sure you want to cancel this appointment?')) {
+      setCancelling(true);
+      await onCancel(id); // call parent handler
+      setCancelling(false);
+    }
+  };
 
   return (
     <div className="appointment-card">
@@ -40,6 +51,9 @@ export default function PatientAppointment({
         )}
       </div>
       <div className="slot-id">Slot ID: {id}</div>
+      <button className="cancel-button" onClick={handleCancel} disabled={cancelling}>
+        {cancelling ? 'Cancelling...' : 'Cancel Appointment'}
+      </button>
     </div>
   );
 }

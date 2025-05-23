@@ -35,6 +35,23 @@ export default function PatientAppointment() {
     fetchPatientSlots();
   }, []);
 
+  const handleCancelAppointment = async (slotId) => {
+    try {
+      const response = await fetch(`http://localhost:4000/patient/cancel-appointment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slot_id: slotId, patient_email: localStorage.getItem('userEmail') })
+      });
+      if (!response.ok) {
+        throw new Error('Failed to cancel appointment');
+      }
+      // Remove the cancelled slot from the UI
+      setSlots(prev => prev.filter(slot => slot.id !== slotId));
+    } catch (err) {
+      alert(err.message || 'Error cancelling appointment');
+    }
+  };
+
   if (loading) return <div className="loading">Loading appointment slots...</div>;
   if (error) return <div className="error">Error: {error}</div>;
 
@@ -49,14 +66,15 @@ export default function PatientAppointment() {
         <div className="appointments-grid">
           {slots.map(slot => (
             <PatientAppointmentCard
+              key={slot.id}
               id={slot.id}
               startTime={slot.start_time}
               endTime={slot.end_time}
               doctor_name={slot.doctor_name}
               doctor_email={slot.doctor_email}
-              doctor_phone={slot.doctor_phone} 
+              doctor_phone={slot.doctor_phone}
               date={slot.date}
-
+              onCancel={handleCancelAppointment}
             />
           ))}
         </div>
